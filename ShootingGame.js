@@ -106,8 +106,8 @@ function createBullet() {
 	var bullet = {
 		x: player.x + player.radius / 2,
 		y: player.y,
-		radius: 2,
-		speed: 4
+		radius: 4,
+		speed: 2
 	};
 	bullets.push(bullet);
 }
@@ -151,8 +151,20 @@ function removeBullet() {
 // ゲーム画面描画
 function drawGame() {
 	// 背景を描画
-	ctx.fillStyle = "#000";
+	ctx.fillStyle = "#59f";
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+	// 弾を描画する
+    for (var i = 0; i < bullets.length; i++) {
+		ctx.fillStyle = "white";
+		ctx.beginPath();
+		ctx.arc(bullets[i].x, bullets[i].y, bullets[i].radius, 0, Math.PI * 2);
+		ctx.fill();
+		ctx.fillStyle = "#59f";
+		ctx.beginPath();
+		ctx.arc(bullets[i].x, bullets[i].y, bullets[i].radius-1, 0, Math.PI * 2);
+		ctx.fill();
+    }
 
 	// プレイヤーを描画
 	ctx.fillStyle = "#ff0";
@@ -167,14 +179,6 @@ function drawGame() {
 		ctx.arc(aliens[i].x, aliens[i].y, aliens[i].radius, 0, Math.PI * 2);
 		ctx.fill();
 	}
-
-    // 弾を描画する
-    ctx.fillStyle = "white";
-    for (var i = 0; i < bullets.length; i++) {
-		ctx.beginPath();
-		ctx.arc(bullets[i].x, bullets[i].y, bullets[i].radius, 0, Math.PI * 2);
-		ctx.fill();
-    }
 
 	// スコアを描画する
 	ctx.fillStyle = "white";
@@ -214,7 +218,7 @@ function drawGameOver() {
 
 // ゲームループ
 var mode=0
-var count = 200;
+var count = 150;
 var score = 0;
 var gameLoop = setInterval(function() {
 	switch(mode) {
