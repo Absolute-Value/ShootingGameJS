@@ -181,14 +181,11 @@ function drawGame() {
 
 	// 弾を描画する
     for (var i = 0; i < bullets.length; i++) {
-		ctx.fillStyle = "white";
 		ctx.beginPath();
 		ctx.arc(bullets[i].x, bullets[i].y, bullets[i].radius, 0, Math.PI * 2);
-		ctx.fill();
-		ctx.fillStyle = BACKGROUND_COLOR;
-		ctx.beginPath();
-		ctx.arc(bullets[i].x, bullets[i].y, bullets[i].radius-1, 0, Math.PI * 2);
-		ctx.fill();
+		ctx.strokeStyle = "white";
+		ctx.lineWidth = 1 ;
+		ctx.stroke() ;
     }
 
 	// プレイヤーを描画
