@@ -20,7 +20,7 @@ function createAlien() {
 		var color = "red";
 	}
 	var alien = {
-		x: canvas.width,
+		x: canvas.width + 8,
 		y: Math.random() * canvas.height,
 		radius: radius,
 		speed: 0.5 + score / 100,
@@ -90,8 +90,9 @@ function collisionDetection() {
 		var distance = Math.sqrt(dx * dx + dy * dy);
 		if (distance < player.radius + aliens[i].radius) {
 			mode = 2;
-			count = 200;
-			player.x = canvas.width / 2;
+			count = 100;
+			player.x = canvas.width / 4;
+			player.y = canvas.height / 2;
 			aliens = [];
 			bullets = [];
 		}
@@ -191,7 +192,7 @@ function drawGame() {
 // ゲーム開始画面描画
 function drawStart() {
 	// 背景を描画
-	ctx.fillStyle = "#000";
+	ctx.fillStyle = BACKGROUND_COLOR;
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 	// タイトルを描画する
@@ -217,7 +218,7 @@ function drawGameOver() {
 
 // ゲームループ
 var mode=0
-var count = 150;
+var count = 100;
 var score = 0;
 var gameLoop = setInterval(function() {
 	switch(mode) {
@@ -232,7 +233,7 @@ var gameLoop = setInterval(function() {
 			removeBullet();
 			drawGame();
 			count += 1;
-			if (count >= 200) {
+			if (count >= 100) {
 				createAlien()
 				count = 0
 			}
