@@ -21,7 +21,7 @@ function createAlien() {
 	}
 	var alien = {
 		x: canvas.width + 8,
-		y: Math.random() * canvas.height,
+		y: Math.random() * (canvas.height-4),
 		radius: radius,
 		speed: 0.5 + score / 100,
 		color: color
@@ -74,9 +74,36 @@ function movePlayer() {
 function moveAlien() {
 	for (var i = 0; i < aliens.length; i++) {
 		aliens[i].x -= aliens[i].speed;
-		if (aliens[i].y > canvas.height + aliens[i].radius) {
-			aliens[i].y = -aliens[i].radius;
-			aliens[i].x = Math.random() * canvas.width;
+		if (aliens[i].x < -5) {
+			aliens[i].x = canvas.width + 8;
+			aliens[i].y = Math.random() * canvas.height;
+		}
+	}
+}
+
+var sand_len = 1;
+var sands = [];
+function createBackGround() {
+	var random_choise = parseInt(Math.random() * 3);
+	if (random_choise==0 && sand_len > 1) {
+		sand_len -= 1;
+	} else if (random_choise==2 && sand_len < 10) {
+		sand_len += 1;
+	}
+	var sand = {
+		x: canvas.width + 8,
+		y: canvas.height - sand_len,
+		len: sand_len,
+		speed: 0.5
+	}
+	sands.push(sand);
+}
+
+function moveBackGround() {
+	for (var i = 0; i < sands.length; i++) {
+		sands[i].x -= sands[i].speed;
+		if (sands[i].x < -5) {
+			sands.splice(i, 1);
 		}
 	}
 }
@@ -116,6 +143,10 @@ function createBullet() {
 function moveBullet() {
 	for (var i = 0; i < bullets.length; i++) {
 		bullets[i].x += bullets[i].speed;
+		// 弾が画面外に出た場合は、弾のオブジェクトを削除する
+		if (bullets[i].x > canvas.width) {
+			bullets.splice(i, 1);
+		}
 	}
 }
 
@@ -138,21 +169,15 @@ function hitTest() {
 	}
 }
 
-// 弾が画面外に出た場合は、弾のオブジェクトを削除する
-function removeBullet() {
-	for (var i = 0; i < bullets.length; i++) {
-		if (bullets[i].y < 0) {
-			bullets.splice(i, 1);
-			break;
-		}
-	}
-}
-
 // ゲーム画面描画
 function drawGame() {
 	// 背景を描画
 	ctx.fillStyle = BACKGROUND_COLOR;
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
+	for (var i = 0; i < sands.length; i++) {
+		ctx.fillStyle = "#ff8";
+		ctx.fillRect(sands[i].x, sands[i].y, 6, sands[i].len);
+	}
 
 	// 弾を描画する
     for (var i = 0; i < bullets.length; i++) {
@@ -218,28 +243,35 @@ function drawGameOver() {
 
 // ゲームループ
 var mode=0
-var count = 100;
+var count = 0;
 var score = 0;
 var gameLoop = setInterval(function() {
 	switch(mode) {
 		case 0:
 			score = 0;
+			if (count % 10 == 0) {
+				createBackGround();
+			}
+			moveBackGround()
 			drawStart();
 			break
 		case 1:
+			if (count % 10 == 0) {
+				createBackGround();
+			}
+			moveBackGround();
 			movePlayer();
 			moveAlien();
 			moveBullet();
-			removeBullet();
 			drawGame();
-			count += 1;
-			if (count >= 100) {
-				createAlien()
-				count = 0
-			}
 			break
 		case 2:
 			drawGameOver();
+	}
+	count += 1;
+	if (count >= 100) {
+		createAlien()
+		count = 0
 	}
 }, 5);
 
