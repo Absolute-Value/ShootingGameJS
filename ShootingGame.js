@@ -1,4 +1,3 @@
-let DEFAULT_FONT = "MS Gothic";
 var canvas = document.getElementById("canvas");
 var ctx = canvas.getContext("2d");
 
@@ -151,7 +150,7 @@ function removeBullet() {
 // ゲーム画面描画
 function drawGame() {
 	// 背景を描画
-	ctx.fillStyle = "#59f";
+	ctx.fillStyle = BACKGROUND_COLOR;
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 	// 弾を描画する
@@ -160,7 +159,7 @@ function drawGame() {
 		ctx.beginPath();
 		ctx.arc(bullets[i].x, bullets[i].y, bullets[i].radius, 0, Math.PI * 2);
 		ctx.fill();
-		ctx.fillStyle = "#59f";
+		ctx.fillStyle = BACKGROUND_COLOR;
 		ctx.beginPath();
 		ctx.arc(bullets[i].x, bullets[i].y, bullets[i].radius-1, 0, Math.PI * 2);
 		ctx.fill();
