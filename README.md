@@ -5,4 +5,4 @@ JavaScriptで動くシューティングゲームを開発する用リポジト�
 [コチラ](https://absolute-value.github.io/ShootingGame/)で遊ぶことができます．
 
 <!-- MARKDOWN LINKS & IMAGES -->
-[JavaScript.js]: https://img.shields.io/badge/JavaScript-f1e05a?style=for-the-badge&logo=javascript&logoColor=white
+[JavaScript.js]: https://img.shields.io/badge/JavaScript-f1e05a?style=for-the-badge&logo=javascript&logoColor=black
