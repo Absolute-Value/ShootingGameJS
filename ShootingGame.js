@@ -239,7 +239,7 @@ function drawGameOver() {
 }
 
 // ゲームループ
-var mode=0
+var mode = 0
 var count = 0;
 var score = 0;
 var gameLoop = setInterval(function() {
@@ -261,14 +261,16 @@ var gameLoop = setInterval(function() {
 			moveAlien();
 			moveBullet();
 			drawGame();
+			if (count >= 100) {
+				createAlien();
+			}
 			break
 		case 2:
 			drawGameOver();
 	}
 	count += 1;
-	if (count >= 100) {
-		createAlien()
-		count = 0
+	if (count > 100) {
+		count = 0;
 	}
 }, 5);
 
