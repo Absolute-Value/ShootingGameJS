@@ -33,6 +33,7 @@ function createAlien() {
 var keys = {};
 document.addEventListener("keydown", function(event) {
 	keys[event.code] = true;
+	event.preventDefault();
 	switch (event.code) {
 		case "KeyX":
 			switch (mode) {
@@ -273,5 +274,3 @@ var gameLoop = setInterval(function() {
 		count = 0;
 	}
 }, 5);
-
-
