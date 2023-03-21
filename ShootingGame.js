@@ -4,8 +4,8 @@ var ctx = canvas.getContext("2d");
 
 // プレイヤーの初期位置とサイズ
 var player = {
-	x: canvas.width / 2,
-	y: canvas.height - 30,
+	x: canvas.width / 4,
+	y: canvas.height / 2,
 	radius: 8
 };
 
@@ -21,8 +21,8 @@ function createAlien() {
 		var color = "red";
 	}
 	var alien = {
-		x: Math.random() * canvas.width,
-		y: -8,
+		x: canvas.width,
+		y: Math.random() * canvas.height,
 		radius: radius,
 		speed: 0.5 + score / 100,
 		color: color
@@ -57,6 +57,12 @@ document.addEventListener("keyup", function(event) {
 
 // プレイヤーの移動
 function movePlayer() {
+	if (keys["ArrowUp"] && player.y > player.radius/2) { // 上矢印キー
+		player.y -= 1;
+	}
+	if (keys["ArrowDown"] && player.y < canvas.height - player.radius/2) { // 下矢印キー
+		player.y += 1;
+	}
 	if (keys["ArrowLeft"] && player.x > player.radius/2) { // 左矢印キー
 		player.x -= 1;
 	}
@@ -68,7 +74,7 @@ function movePlayer() {
 // エイリアンの移動
 function moveAlien() {
 	for (var i = 0; i < aliens.length; i++) {
-		aliens[i].y += aliens[i].speed;
+		aliens[i].x -= aliens[i].speed;
 		if (aliens[i].y > canvas.height + aliens[i].radius) {
 			aliens[i].y = -aliens[i].radius;
 			aliens[i].x = Math.random() * canvas.width;
@@ -109,7 +115,7 @@ function createBullet() {
 // 弾を移動させる
 function moveBullet() {
 	for (var i = 0; i < bullets.length; i++) {
-		bullets[i].y -= bullets[i].speed;
+		bullets[i].x += bullets[i].speed;
 	}
 }
 
@@ -149,7 +155,7 @@ function drawGame() {
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 
 	// プレイヤーを描画
-	ctx.fillStyle = "white";
+	ctx.fillStyle = "#ff0";
 	ctx.beginPath();
 	ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
 	ctx.fill();
@@ -173,7 +179,7 @@ function drawGame() {
 	// スコアを描画する
 	ctx.fillStyle = "white";
 	ctx.font = "10px " + DEFAULT_FONT;
-	ctx.fillText("Score: " + score, 0, canvas.height-1);
+	ctx.fillText("Score: " + score, 1, 10);
 
 	// 当たり判定
 	collisionDetection();
