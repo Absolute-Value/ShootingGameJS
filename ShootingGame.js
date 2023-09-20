@@ -1,19 +1,25 @@
 var canvas = document.getElementById("canvas");
+canvas.width = 640;
+canvas.height = 480;
 var ctx = canvas.getContext("2d");
+var title_image = new Image();
+title_image.src = "img/Title.png";
 
 // プレイヤーの初期位置とサイズ
 var player = {
 	x: canvas.width / 4,
 	y: canvas.height / 2,
-	radius: 8
+	radius: 20,
+	img: new Image()
 };
+player.img.src = "img/Player.png";
 
 // エイリアンのオブジェクトを格納する配列
 var aliens = [];
 
 // エイリアンを生成する関数
 function createAlien() {
-	radius = 6 + Math.random() * 6;
+	radius = 15 + Math.random() * 10;
 	if (radius > 8){
 		var color = "green";
 	} else {
@@ -35,7 +41,7 @@ document.addEventListener("keydown", function(event) {
 	keys[event.code] = true;
 	event.preventDefault();
 	switch (event.code) {
-		case "KeyX":
+		case "Space":
 			switch (mode) {
 				case 0:
 					mode = 1
@@ -134,7 +140,7 @@ function createBullet() {
 	var bullet = {
 		x: player.x + player.radius / 2,
 		y: player.y,
-		radius: 4,
+		radius: 10,
 		speed: 2
 	};
 	bullets.push(bullet);
@@ -190,10 +196,7 @@ function drawGame() {
     }
 
 	// プレイヤーを描画
-	ctx.fillStyle = "#ff0";
-	ctx.beginPath();
-	ctx.arc(player.x, player.y, player.radius, 0, Math.PI * 2);
-	ctx.fill();
+	ctx.drawImage(player.img, 40, 0, 40, 40, player.x-player.radius, player.y-player.radius, player.radius*2, player.radius*2);
 
 	// エイリアンを描画
 	for (var i = 0; i < aliens.length; i++) {
@@ -203,40 +206,38 @@ function drawGame() {
 		ctx.fill();
 	}
 
-	// スコアを描画する
-	ctx.fillStyle = "white";
-	ctx.font = "10px " + DEFAULT_FONT;
-	ctx.fillText("Score: " + score, 1, 10);
-
 	// 当たり判定
 	collisionDetection();
 }
 
+// スコアの描画
+function drawScore() {
+	ctx.textAlign = "start";
+	ctx.textBaseline = "top";
+	ctx.fillStyle = "white";
+	ctx.font = "30px " + DEFAULT_FONT;
+	ctx.fillText("Score: " + score, 5, 5);
+}
+
 // ゲーム開始画面描画
 function drawStart() {
-	// 背景を描画
-	ctx.fillStyle = BACKGROUND_COLOR;
-	ctx.fillRect(0, 0, canvas.width, canvas.height);
-
-	// タイトルを描画する
-	ctx.fillStyle = "white";
-	ctx.font = "20px " + DEFAULT_FONT;
-	ctx.fillText("Shooting Game", canvas.width/2-75, canvas.height/2-5);
-	ctx.font = "10px " + DEFAULT_FONT;
-	ctx.fillText("Press x key", canvas.width/2-30, canvas.height/2+10);
+	ctx.drawImage(title_image, 0, 0, canvas.width, canvas.height);
 }
 
 function drawGameOver() {
 	// 背景を描画
-	ctx.fillStyle = "#000";
+ctx.fillStyle = "#000";
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	// タイトルを描画する
+	ctx.font = "80px " + DEFAULT_FONT;
+	ctx.textAlign = "center";
+	ctx.fillStyle = "red";
+	ctx.textBaseline = "middle";
+	ctx.fillText("Game Over", canvas.width/2, canvas.height/2);
+	ctx.font = "40px " + DEFAULT_FONT;
 	ctx.fillStyle = "white";
-	ctx.font = "20px " + DEFAULT_FONT;
-	ctx.fillText("GameOver", canvas.width/2-50, canvas.height/2-5);
-	ctx.font = "10px " + DEFAULT_FONT;
-	ctx.fillText("Score: " + score, canvas.width/2-20, canvas.height/2+10);
-	ctx.fillText("Press Enter key", canvas.width/2-45, canvas.height/2+20);
+	ctx.textBaseline = "bottom";
+	ctx.fillText("Press Enter Key", canvas.width/2, canvas.height-40);
 }
 
 // ゲームループ
@@ -262,12 +263,14 @@ var gameLoop = setInterval(function() {
 			moveAlien();
 			moveBullet();
 			drawGame();
+			drawScore();
 			if (count >= 100) {
 				createAlien();
 			}
 			break
 		case 2:
 			drawGameOver();
+			drawScore();
 	}
 	count += 1;
 	if (count > 100) {

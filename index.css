@@ -3,8 +3,8 @@ h1, h2, p {
 }
 
 #canvas {
-    width: 640px;
-    height: 480px;
+    width: 640;
+    height: 480;
     border: 2px solid #999;
     margin-left: 5%;
 }
