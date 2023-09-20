@@ -5,6 +5,16 @@ var ctx = canvas.getContext("2d");
 var title_image = new Image();
 title_image.src = "img/Title.png";
 
+var background = {
+	x: 0,
+	y: 0,
+	width: 1920,
+	height: 480,
+	speed: 0.25,
+	img: new Image()
+}
+background.img.src = "img/BackGround.png";
+
 // プレイヤーの初期位置とサイズ
 var player = {
 	x: canvas.width / 4,
@@ -83,30 +93,10 @@ function moveAlien() {
 	}
 }
 
-var sand_len = 1;
-var sands = [];
-function createBackGround() {
-	var random_choise = parseInt(Math.random() * 3);
-	if (random_choise==0 && sand_len > 1) {
-		sand_len -= 1;
-	} else if (random_choise==2 && sand_len < 10) {
-		sand_len += 1;
-	}
-	var sand = {
-		x: canvas.width + 8,
-		y: canvas.height - sand_len,
-		len: sand_len,
-		speed: 0.5
-	}
-	sands.push(sand);
-}
-
 function moveBackGround() {
-	for (var i = 0; i < sands.length; i++) {
-		sands[i].x -= sands[i].speed;
-		if (sands[i].x < -5) {
-			sands.splice(i, 1);
-		}
+	background.x += background.speed;
+	if (background.x > background.width - canvas.width) {
+		background.x = 0;
 	}
 }
 
@@ -174,12 +164,7 @@ function hitTest() {
 // ゲーム画面描画
 function drawGame() {
 	// 背景を描画
-	ctx.fillStyle = BACKGROUND_COLOR;
-	ctx.fillRect(0, 0, canvas.width, canvas.height);
-	for (var i = 0; i < sands.length; i++) {
-		ctx.fillStyle = "#ff8";
-		ctx.fillRect(sands[i].x, sands[i].y, 6, sands[i].len);
-	}
+	ctx.drawImage(background.img, background.x, background.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
 
 	// 弾を描画する
     for (var i = 0; i < bullets.length; i++) {
@@ -240,16 +225,10 @@ var gameLoop = setInterval(function() {
 	switch(mode) {
 		case 0:
 			score = 0;
-			if (count % 10 == 0) {
-				createBackGround();
-			}
 			moveBackGround()
 			drawStart();
 			break
 		case 1:
-			if (count % 10 == 0) {
-				createBackGround();
-			}
 			moveBackGround();
 			movePlayer();
 			moveAlien();
