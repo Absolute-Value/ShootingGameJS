@@ -19,19 +19,14 @@ var aliens = [];
 
 // エイリアンを生成する関数
 function createAlien() {
-	radius = 15 + Math.random() * 10;
-	if (radius > 8){
-		var color = "green";
-	} else {
-		var color = "red";
-	}
 	var alien = {
-		x: canvas.width + 8,
+		x: canvas.width + 25,
 		y: Math.random() * (canvas.height-4),
-		radius: radius,
+		radius: 20,
 		speed: 0.5 + score / 100,
-		color: color
+		img: new Image(),
 	};
+	alien.img.src = "img/GoldFish.png";
 	aliens.push(alien);
 }
 
@@ -200,10 +195,7 @@ function drawGame() {
 
 	// エイリアンを描画
 	for (var i = 0; i < aliens.length; i++) {
-		ctx.fillStyle = aliens[i].color;
-		ctx.beginPath();
-		ctx.arc(aliens[i].x, aliens[i].y, aliens[i].radius, 0, Math.PI * 2);
-		ctx.fill();
+		ctx.drawImage(aliens[i].img, 0, 0, 64, 30, aliens[i].x-aliens[i].radius, aliens[i].y-aliens[i].radius, aliens[i].radius*2, aliens[i].radius*2);
 	}
 
 	// 当たり判定
