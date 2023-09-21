@@ -5,37 +5,71 @@ var ctx = canvas.getContext("2d");
 var title_image = new Image();
 title_image.src = "img/Title.png";
 
-var background = {
-	x: 0,
-	y: 0,
-	width: 1920,
-	height: 480,
-	speed: 0.25,
-	img: new Image()
-}
-background.img.src = "img/BackGround.png";
-
-// プレイヤーの初期位置とサイズ
-var player = {
-	hp: 3,
-	x: canvas.width / 4,
-	y: canvas.height / 2,
-	radius: 20,
-	speed: 1,
-	img: new Image()
-};
-player.img.src = "img/Player.png";
-
-class Enemy {
-	constructor(max_hp=1, radius=20, speed=0.5, img="img/GoldFish.png", appear_score=0, point=100) {
+class Entity {
+	constructor(max_hp=3, x=0, y=0, radius=20, speed=1, img="img/Player.png") {
 		this.max_hp = max_hp;
 		this.hp = 0;
-		this.x = 0;
-		this.y = 0;
+		this.x = x;
+		this.y = y;
 		this.radius = radius;
 		this.speed = speed;
 		this.img = new Image();
 		this.img.src = img;
+	}
+
+	draw(x, y, width, height) {
+		ctx.drawImage(this.img, x, y, width, height, this.x-this.radius, this.y-this.radius, this.radius*2, this.radius*2);
+	}
+}
+
+class BackGround extends Entity {
+	constructor(speed=0.25, img="img/BackGround.png") {
+		super(1, 0, 0, 0, speed, img);
+		this.width = 1920;
+		this.height = 480;
+	}
+
+	move() {
+		this.x += this.speed;
+		if (this.x > this.width - canvas.width) {
+			this.x = 0;
+		}
+	}
+}
+background = new BackGround();
+
+class Player extends Entity {
+	constructor() {
+		super();
+		this.revive();
+	}
+
+	move() {
+		if (keys["ArrowUp"] && this.y > this.radius) { // 上矢印キー
+			this.y -= this.speed;
+		}
+		if (keys["ArrowDown"] && this.y < canvas.height - this.radius) { // 下矢印キー
+			this.y += this.speed;
+		}
+		if (keys["ArrowLeft"] && this.x > this.radius) { // 左矢印キー
+			this.x -= this.speed;
+		}
+		if (keys["ArrowRight"] && this.x < canvas.width - this.radius) { // 右矢印キー
+			this.x += this.speed;
+		}
+	}
+
+	revive() {
+		this.hp = this.max_hp;
+		this.x = canvas.width / 4;
+		this.y = canvas.height / 2;
+	}
+}
+player = new Player();
+
+class Enemy extends Entity {
+	constructor(max_hp=1, radius=20, speed=0.5, img="img/GoldFish.png", appear_score=0, point=100) {
+		super(max_hp, 0, 0, radius, speed, img);
 		this.appear_score = appear_score;
 		this.point = point;
 	}
@@ -46,10 +80,6 @@ class Enemy {
 			this.x = canvas.width + 25;
 			this.y = Math.random() * (canvas.height-40) + 20;
 		}
-	}
-
-	draw() {
-		ctx.drawImage(this.img, 0, 0, 64, 30, this.x-this.radius, this.y-this.radius, this.radius*2, this.radius*2);
 	}
 
 	revive() {
@@ -97,22 +127,6 @@ document.addEventListener("keyup", function(event) {
 	delete keys[event.code];
 });
 
-// プレイヤーの移動
-function movePlayer() {
-	if (keys["ArrowUp"] && player.y > player.radius) { // 上矢印キー
-		player.y -= player.speed;
-	}
-	if (keys["ArrowDown"] && player.y < canvas.height - player.radius) { // 下矢印キー
-		player.y += player.speed;
-	}
-	if (keys["ArrowLeft"] && player.x > player.radius) { // 左矢印キー
-		player.x -= player.speed;
-	}
-	if (keys["ArrowRight"] && player.x < canvas.width - player.radius) { // 右矢印キー
-		player.x += player.speed;
-	}
-}
-
 // 敵のの復活
 function reviveAlien() {
 	for (var i = 0; i < enemys.length; i++) {
@@ -130,13 +144,6 @@ function moveEnemys() {
 		if (enemys[i].hp > 0) {
 			enemys[i].move();
 		}
-	}
-}
-
-function moveBackGround() {
-	background.x += background.speed;
-	if (background.x > background.width - canvas.width) {
-		background.x = 0;
 	}
 }
 
@@ -174,8 +181,7 @@ function collisionDetection() {
 				if (player.hp <= 0) {
 					mode = 2;
 					score = 0;
-					player.x = canvas.width / 4;
-					player.y = canvas.height / 2;
+					player.revive();
 					for (var i = 0; i < enemys.length; i++) {
 						enemys[i].hp = 0;
 					}
@@ -223,14 +229,11 @@ function drawGame() {
 		ctx.lineWidth = 1 ;
 		ctx.stroke() ;
     }
-
-	// プレイヤーを描画
-	ctx.drawImage(player.img, 40, 0, 40, 40, player.x-player.radius, player.y-player.radius, player.radius*2, player.radius*2);
-
+	player.draw(40, 0, 40, 40);
 	// 敵の生物を描画
 	for (var i = 0; i < enemys.length; i++) {
 		if (enemys[i].hp > 0) {
-			enemys[i].draw();
+			enemys[i].draw(0, 0, 64, 30);
 		}
 	}
 }
@@ -262,7 +265,6 @@ function drawGameOver() {
 
 // ゲームループ
 var mode = 0
-var count = 0;
 var score = 0;
 var gameLoop = setInterval(function() {
 	switch(mode) {
@@ -271,8 +273,8 @@ var gameLoop = setInterval(function() {
 			drawLetter(VERSION);
 			break
 		case 1:
-			moveBackGround();
-			movePlayer();
+			background.move();
+			player.move();
 			moveEnemys();
 			moveBullet();
 			drawGame();
