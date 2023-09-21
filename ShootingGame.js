@@ -75,6 +75,8 @@ class Player extends Entity {
 		this.hp = this.max_hp;
 		this.x = canvas.width / 4;
 		this.y = canvas.height / 2;
+		this.score = 0;
+		this.mode = 0;
 	}
 }
 player = new Player();
@@ -120,9 +122,9 @@ class Enemy extends Entity {
 
 	move() {
 		super.move();
-		if (this.x < -5) {
-			this.x = canvas.width + 25;
-			this.y = Math.random() * (canvas.height-40) + 20;
+		if (this.x < -this.radius) {
+			this.x = canvas.width + this.radius;
+			this.y = Math.random() * (canvas.height-this.radius*2) + this.radius;
 		}
 	}
 
@@ -135,12 +137,8 @@ class Enemy extends Entity {
 	}
 }
 var enemys = []; // 敵のオブジェクトを格納する配列
-for (var i = 0; i < GOLDFISH_NUM; i++) { // GoldFish
-	enemys.push(new Enemy());
-}
-for (var i = 0; i < TURTLE_NUM; i++) { // Turtle
-	enemys.push(new Enemy(2, 25, -0.3, "img/Turtle.png", 1000, 300));
-}
+for (var i = 0; i < GOLDFISH_NUM; i++) enemys.push(new Enemy()); // GoldFish
+for (var i = 0; i < TURTLE_NUM; i++) enemys.push(new Enemy(2, 25, -0.3, "img/Turtle.png", 1000, 300)); // Turtle
 
 // キーボード入力の処理
 var keys = {};
@@ -149,9 +147,9 @@ document.addEventListener("keydown", function(event) {
 	event.preventDefault();
 	switch (event.code) {
 		case "Space":
-			switch (mode) {
+			switch (player.mode) {
 				case 0:
-					mode = 1
+					player.mode = 1
 					break
 				case 1:
 					for (var i = 0; i < bullets.length; i++) {
@@ -164,8 +162,8 @@ document.addEventListener("keydown", function(event) {
 			}
 			break
 		case "Enter":
-			if (mode = 2) {
-				mode = 0
+			if (player.mode = 2) {
+				player.mode = 0
 			}
 	}
 });
@@ -173,147 +171,94 @@ document.addEventListener("keyup", function(event) {
 	delete keys[event.code];
 });
 
-// 敵の復活
-function reviveAlien() {
-	for (var i = 0; i < enemys.length; i++) {
-		if (enemys[i].hp <= 0 && score >= enemys[i].appear_score) {
-			if (Math.random() < 0.01) {
-				enemys[i].revive();
-			}
-		}
-	}
-}
-
-// 敵の生物の移動
-function moveEnemys() {
-	for (var i = 0; i < enemys.length; i++) {
-		if (enemys[i].hp > 0) {
-			enemys[i].move();
-		}
-	}
-}
-
-// 弾の移動
-function moveBullet() {
-	for (var i = 0; i < bullets.length; i++) {
-		if (bullets[i].hp > 0) {
-			bullets[i].move();
-		}
-	}
-}
-
 // 当たり判定
 function collisionDetection() {
 	// 弾と敵の生物の当たり判定
 	for (var j = 0; j < enemys.length; j++) {
-		if (enemys[j].hp > 0) {
-			for (var i = 0; i < bullets.length; i++) {
-				var dx = bullets[i].x - enemys[j].x;
-				var dy = bullets[i].y - enemys[j].y;
-				var distance = Math.sqrt(dx * dx + dy * dy);
-				if (distance < bullets[i].radius + enemys[j].radius) {
-					// 当たった弾と敵の生物を削除する
-					bullets[i].hp -= 1;
-					enemys[j].hp -= 1;
-					if (enemys[j].hp <= 0) {
-						// スコアを加算する
-						score += enemys[j].point;
-					}
-					break;
+		if (enemys[j].hp <= 0) continue; // 敵の生物が死んでいたら次の敵の生物へ
+		for (var i = 0; i < bullets.length; i++) {
+			if (bullets[i].hp <= 0) continue; // 弾が死んでいたら次の弾へ
+			var dx = bullets[i].x - enemys[j].x;
+			var dy = bullets[i].y - enemys[j].y;
+			var distance = Math.sqrt(dx * dx + dy * dy);
+			if (distance < bullets[i].radius + enemys[j].radius) {
+				// 当たった弾と敵の生物を削除する
+				bullets[i].hp -= 1;
+				enemys[j].hp -= 1;
+				if (enemys[j].hp <= 0) {
+					// スコアを加算する
+					player.score += enemys[j].point;
 				}
+				break;
 			}
 		}
 	}
 	// 敵の生物とプレイヤーの当たり判定
 	for (var i = 0; i < enemys.length; i++) {
-		if (enemys[i].hp > 0) {
-			var dx = player.x - enemys[i].x;
-			var dy = player.y - enemys[i].y;
-			var distance = Math.sqrt(dx * dx + dy * dy);
-			if (distance < player.radius + enemys[i].radius) {
-				enemys[i].hp -= 1;
-				player.hp -= 1;
-				if (player.hp <= 0) {
-					mode = 2;
-					score = 0;
-					player.revive();
-					for (var i = 0; i < enemys.length; i++) {
-						enemys[i].hp = 0;
-					}
-					for (var i = 0; i < bullets.length; i++) {
-						bullets[i].hp = 0;
-					}
+		if (enemys[i].hp <= 0) continue; // 敵の生物が死んでいたら次の敵の生物へ
+		var dx = player.x - enemys[i].x;
+		var dy = player.y - enemys[i].y;
+		var distance = Math.sqrt(dx * dx + dy * dy);
+		if (distance < player.radius + enemys[i].radius) {
+			enemys[i].hp -= 1;
+			player.hp -= 1;
+			if (player.hp <= 0) {
+				player.revive();
+				for (var i = 0; i < enemys.length; i++) {
+					enemys[i].hp = 0;
+				}
+				for (var i = 0; i < bullets.length; i++) {
+					bullets[i].hp = 0;
 				}
 			}
 		}
 	}
 }
 
-// ゲーム画面描画
-function drawGame() {
-	background.draw();
-	// 弾を描画する
-    for (var i = 0; i < bullets.length; i++) {
-		if (bullets[i].hp > 0) {
-			bullets[i].draw();
-		}
-    }
-	player.draw();
-	// 敵の生物を描画
-	for (var i = 0; i < enemys.length; i++) {
-		if (enemys[i].hp > 0) {
-			enemys[i].draw();
-		}
-	}
-}
-
-// スコアやHPの描画
-function drawLetter(str, x=5, y=5) {
-	ctx.textAlign = "start";
-	ctx.textBaseline = "top";
-	ctx.fillStyle = "white";
-	ctx.font = "30px " + DEFAULT_FONT;
+// 文字の描画
+function drawLetter(str, x=5, y=5, color="white", size=30, aligin="start", baseline="top") {
+	ctx.textAlign = aligin;
+	ctx.textBaseline = baseline;
+	ctx.fillStyle = color;
+	ctx.font = size + "px " + DEFAULT_FONT;
 	ctx.fillText(str, x, y);
 }
 
-function drawGameOver() {
-	// 背景を描画
-	ctx.fillStyle = "#000";
-	ctx.fillRect(0, 0, canvas.width, canvas.height);
-	// タイトルを描画する
-	ctx.font = "80px " + DEFAULT_FONT;
-	ctx.textAlign = "center";
-	ctx.fillStyle = "red";
-	ctx.textBaseline = "middle";
-	ctx.fillText("Game Over", canvas.width/2, canvas.height/2);
-	ctx.font = "40px " + DEFAULT_FONT;
-	ctx.fillStyle = "white";
-	ctx.textBaseline = "bottom";
-	ctx.fillText("Press Enter Key", canvas.width/2, canvas.height-40);
-}
-
 // ゲームループ
-var mode = 0
-var score = 0;
 var gameLoop = setInterval(function() {
-	switch(mode) {
+	switch(player.mode) {
 		case 0:
-			ctx.drawImage(title_image, 0, 0, canvas.width, canvas.height);
-			drawLetter(VERSION);
+			ctx.drawImage(title_image, 0, 0, canvas.width, canvas.height); // タイトル画面を描画する
+			drawLetter(VERSION); // バージョンを描画する
 			break
 		case 1:
-			background.move();
-			player.move();
-			moveEnemys();
-			moveBullet();
-			drawGame();
+			background.move(); // 背景をスクロールさせる
+			background.draw(); // 背景を描画する
+			player.move(); // プレイヤーを移動させる
+			player.draw(); // プレイヤーを描画する
+			for (var i = 0; i < enemys.length; i++) {
+				if (enemys[i].hp > 0) {
+					enemys[i].move(); // 敵の生物を移動させる
+					enemys[i].draw(); // 敵の生物を描画する
+				} else if (player.score >= enemys[i].appear_score) { // スコアが一定値を超えたら
+					if (Math.random() < 0.01) enemys[i].revive(); // 1%の確率で復活させる
+				}
+			}
+			for (var i = 0; i < bullets.length; i++) {
+				if (bullets[i].hp > 0) {
+					bullets[i].move(); // 弾を移動させる
+					bullets[i].draw(); // 弾を描画する
+				}
+			}
 			collisionDetection(); // 当たり判定
-			drawLetter("Score: " + score);
-			drawLetter("HP: " + player.hp, canvas.width / 2 + 5, 5);
-			reviveAlien();
+			drawLetter("Score: " + player.score); // スコアを描画する
+			drawLetter("HP: " + player.hp, canvas.width / 2 + 5, 5); // HPを描画する
 			break
 		case 2:
-			drawGameOver();
-			drawLetter("Score: " + score);
+			ctx.fillStyle = "#000";
+			ctx.fillRect(0, 0, canvas.width, canvas.height);
+			drawLetter("Game Over", canvas.width/2, canvas.height/2, "red", 80, "center", "middle");
+			drawLetter("Press Enter Key", canvas.width/2, canvas.height-40, "white", 40, "center", "bottom");
+			drawLetter("Score: " + player.score); // スコアを描画する
 	}
 }, 5);
