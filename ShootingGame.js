@@ -18,6 +18,10 @@ class Entity {
 		this.crop = crop;
 	}
 
+	move() {
+		this.x += this.speed;
+	}
+
 	draw() {
 		var crop_x = this.crop.width * (this.speed >= 0 ? 1 : 0)
 		ctx.drawImage(this.img, crop_x, 0, this.crop.width, this.crop.height, this.x-this.radius, this.y-this.radius, this.radius*2, this.radius*2);
@@ -32,7 +36,7 @@ class BackGround extends Entity {
 	}
 
 	move() {
-		this.x += this.speed;
+		super.move();
 		if (this.x > this.width - canvas.width) {
 			this.x = 0;
 		}
@@ -59,11 +63,11 @@ class Player extends Entity {
 		}
 		if (keys["ArrowLeft"] && this.x > this.radius) { // 左矢印キー
 			this.speed = Math.abs(this.speed) * -1;
-			this.x += this.speed;
+			super.move();
 		}
 		if (keys["ArrowRight"] && this.x < canvas.width - this.radius) { // 右矢印キー
 			this.speed = Math.abs(this.speed);
-			this.x += this.speed;
+			super.move();
 		}
 	}
 
@@ -75,6 +79,38 @@ class Player extends Entity {
 }
 player = new Player();
 
+class Bullet extends Entity {
+	constructor() {
+		super(1, 0, 0, 10, 2);
+	}
+
+	move() {
+		super.move();
+		if (this.x > canvas.width + this.radius || this.x < -this.radius) {
+			this.hp = 0;
+		}
+	}
+
+	draw() {
+		ctx.beginPath();
+		ctx.arc(this.x, this.y, this.radius, 0, Math.PI * 2);
+		ctx.strokeStyle = "white";
+		ctx.lineWidth = 1 ;
+		ctx.stroke() ;
+	}
+
+	revive() {
+		this.hp = this.max_hp;
+		this.x = player.x + player.radius / 2;
+		this.y = player.y;
+		this.speed = player.speed >= 0 ? 2 : -2;
+	}
+}
+bullets = [];
+for (var i = 0; i < BULLET_NUM; i++) {
+	bullets.push(new Bullet());
+}
+
 class Enemy extends Entity {
 	constructor(max_hp=1, radius=20, speed=-0.5, img="img/GoldFish.png", appear_score=0, point=100, crop={width:64, height:30}) {
 		super(max_hp, 0, 0, radius, speed, img, crop);
@@ -83,7 +119,7 @@ class Enemy extends Entity {
 	}
 
 	move() {
-		this.x += this.speed;
+		super.move();
 		if (this.x < -5) {
 			this.x = canvas.width + 25;
 			this.y = Math.random() * (canvas.height-40) + 20;
@@ -98,10 +134,7 @@ class Enemy extends Entity {
 		}
 	}
 }
-
-// 敵のオブジェクトを格納する配列
-var enemys = [];
-
+var enemys = []; // 敵のオブジェクトを格納する配列
 for (var i = 0; i < GOLDFISH_NUM; i++) { // GoldFish
 	enemys.push(new Enemy());
 }
@@ -121,7 +154,12 @@ document.addEventListener("keydown", function(event) {
 					mode = 1
 					break
 				case 1:
-					createBullet();
+					for (var i = 0; i < bullets.length; i++) {
+						if (bullets[i].hp <= 0) {
+							bullets[i].revive();
+							break;
+						}
+					}
 					break
 			}
 			break
@@ -155,6 +193,15 @@ function moveEnemys() {
 	}
 }
 
+// 弾の移動
+function moveBullet() {
+	for (var i = 0; i < bullets.length; i++) {
+		if (bullets[i].hp > 0) {
+			bullets[i].move();
+		}
+	}
+}
+
 // 当たり判定
 function collisionDetection() {
 	// 弾と敵の生物の当たり判定
@@ -166,7 +213,7 @@ function collisionDetection() {
 				var distance = Math.sqrt(dx * dx + dy * dy);
 				if (distance < bullets[i].radius + enemys[j].radius) {
 					// 当たった弾と敵の生物を削除する
-					bullets.splice(i, 1);
+					bullets[i].hp -= 1;
 					enemys[j].hp -= 1;
 					if (enemys[j].hp <= 0) {
 						// スコアを加算する
@@ -193,33 +240,11 @@ function collisionDetection() {
 					for (var i = 0; i < enemys.length; i++) {
 						enemys[i].hp = 0;
 					}
-					bullets = [];
+					for (var i = 0; i < bullets.length; i++) {
+						bullets[i].hp = 0;
+					}
 				}
 			}
-		}
-	}
-}
-
-// 弾のオブジェクトを作成し、弾の初期位置とサイズを設定する
-var bullets = [];
-
-function createBullet() {
-	var bullet = {
-		x: player.x + player.radius / 2,
-		y: player.y,
-		radius: 10,
-		speed: player.speed >= 0 ? 2 : -2
-	};
-	bullets.push(bullet);
-}
-
-// 弾を移動させる
-function moveBullet() {
-	for (var i = 0; i < bullets.length; i++) {
-		bullets[i].x += bullets[i].speed;
-		// 弾が画面外に出た場合は、弾のオブジェクトを削除する
-		if (bullets[i].x > canvas.width) {
-			bullets.splice(i, 1);
 		}
 	}
 }
@@ -229,11 +254,9 @@ function drawGame() {
 	background.draw();
 	// 弾を描画する
     for (var i = 0; i < bullets.length; i++) {
-		ctx.beginPath();
-		ctx.arc(bullets[i].x, bullets[i].y, bullets[i].radius, 0, Math.PI * 2);
-		ctx.strokeStyle = "white";
-		ctx.lineWidth = 1 ;
-		ctx.stroke() ;
+		if (bullets[i].hp > 0) {
+			bullets[i].draw();
+		}
     }
 	player.draw();
 	// 敵の生物を描画
