@@ -27,15 +27,17 @@ var player = {
 player.img.src = "img/Player.png";
 
 class Enemy {
-	constructor(hp=0, x=0, y=0, radius=20, speed=0.5, score=100, img="img/GoldFish.png") {
-		this.hp = hp;
-		this.x = x;
-		this.y = y;
+	constructor(max_hp=1, radius=20, speed=0.5, img="img/GoldFish.png", appear_score=0, point=100) {
+		this.max_hp = max_hp;
+		this.hp = 0;
+		this.x = 0;
+		this.y = 0;
 		this.radius = radius;
 		this.speed = speed;
-		this.score = score;
 		this.img = new Image();
 		this.img.src = img;
+		this.appear_score = appear_score;
+		this.point = point;
 	}
 
 	move() {
@@ -52,9 +54,9 @@ class Enemy {
 
 	revive() {
 		if (this.hp == 0 && Math.random() < 0.1) {
-			this.hp = 1;
-			this.x = canvas.width + 25;
-			this.y = Math.random() * (canvas.height-40) + 20;
+			this.hp = this.max_hp;
+			this.x = canvas.width + this.radius;
+			this.y = Math.random() * (canvas.height-this.radius*2) + this.radius;
 		}
 	}
 }
@@ -62,10 +64,11 @@ class Enemy {
 // 的のオブジェクトを格納する配列
 var enemys = [];
 
-// 敵を生成する関数
-for (var i = 0; i < 10; i++) {
-	alien = new Enemy();
-	enemys.push(alien);
+for (var i = 0; i < 10; i++) { // GoldFish
+	enemys.push(new Enemy());
+}
+for (var i = 0; i < 5; i++) { // Turtle
+	enemys.push(new Enemy(2, 25, 0.3, "img/Turtle.png", 1000, 300));
 }
 
 // キーボード入力の処理
@@ -113,7 +116,7 @@ function movePlayer() {
 // 敵のの復活
 function reviveAlien() {
 	for (var i = 0; i < enemys.length; i++) {
-		if (enemys[i].hp <= 0) {
+		if (enemys[i].hp <= 0 && score >= enemys[i].appear_score) {
 			if (Math.random() < 0.01) {
 				enemys[i].revive();
 			}
@@ -147,11 +150,13 @@ function collisionDetection() {
 				var dy = bullets[i].y - enemys[j].y;
 				var distance = Math.sqrt(dx * dx + dy * dy);
 				if (distance < bullets[i].radius + enemys[j].radius) {
-					// スコアを加算する
-					score += enemys[j].score;
 					// 当たった弾と敵の生物を削除する
 					bullets.splice(i, 1);
 					enemys[j].hp -= 1;
+					if (enemys[j].hp <= 0) {
+						// スコアを加算する
+						score += enemys[j].point;
+					}
 					break;
 				}
 			}
