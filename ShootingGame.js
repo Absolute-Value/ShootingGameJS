@@ -1,9 +1,7 @@
 var canvas = document.getElementById("canvas");
+var ctx = canvas.getContext("2d");
 canvas.width = 640;
 canvas.height = 480;
-var ctx = canvas.getContext("2d");
-var title_image = new Image();
-title_image.src = "img/Title.png";
 
 class Entity {
 	constructor(max_hp=3, x=0, y=0, radius=20, speed=1, img="img/Player.png", crop={width: 40, height: 40}) {
@@ -27,6 +25,17 @@ class Entity {
 		ctx.drawImage(this.img, crop_x, 0, this.crop.width, this.crop.height, this.x-this.radius, this.y-this.radius, this.radius*2, this.radius*2);
 	}
 }
+
+class Title extends Entity {
+	constructor() {
+		super(1, 0, 0, 0, 0, "img/Title.png");
+	}
+
+	draw() {
+		ctx.drawImage(this.img, 0, 0, canvas.width, canvas.height);
+	}
+}
+title = new Title();
 
 class BackGround extends Entity {
 	constructor(speed=0.25, img="img/BackGround.png") {
@@ -75,6 +84,7 @@ class Player extends Entity {
 		this.hp = this.max_hp;
 		this.x = canvas.width / 4;
 		this.y = canvas.height / 2;
+		this.speed = 1;
 		this.score = 0;
 		this.mode = 0;
 	}
@@ -163,7 +173,7 @@ document.addEventListener("keydown", function(event) {
 			break
 		case "Enter":
 			if (player.mode = 2) {
-				player.mode = 0
+				player.revive();
 			}
 	}
 });
@@ -203,7 +213,7 @@ function collisionDetection() {
 			enemys[i].hp -= 1;
 			player.hp -= 1;
 			if (player.hp <= 0) {
-				player.revive();
+				player.mode = 2;
 				for (var i = 0; i < enemys.length; i++) {
 					enemys[i].hp = 0;
 				}
@@ -228,7 +238,7 @@ function drawLetter(str, x=5, y=5, color="white", size=30, aligin="start", basel
 var gameLoop = setInterval(function() {
 	switch(player.mode) {
 		case 0:
-			ctx.drawImage(title_image, 0, 0, canvas.width, canvas.height); // タイトル画面を描画する
+			title.draw(); // タイトルを描画する
 			drawLetter(VERSION); // バージョンを描画する
 			break
 		case 1:
