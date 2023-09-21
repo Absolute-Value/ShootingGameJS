@@ -17,6 +17,7 @@ background.img.src = "img/BackGround.png";
 
 // プレイヤーの初期位置とサイズ
 var player = {
+	hp: 3,
 	x: canvas.width / 4,
 	y: canvas.height / 2,
 	radius: 20,
@@ -25,21 +26,46 @@ var player = {
 };
 player.img.src = "img/Player.png";
 
-// エイリアンのオブジェクトを格納する配列
-var aliens = [];
+class Enemy {
+	constructor(hp=0, x=0, y=0, radius=20, speed=0.5, score=100, img="img/GoldFish.png") {
+		this.hp = hp;
+		this.x = x;
+		this.y = y;
+		this.radius = radius;
+		this.speed = speed;
+		this.score = score;
+		this.img = new Image();
+		this.img.src = img;
+	}
 
-// エイリアンを生成する関数
-function createAlien() {
-	var alien = {
-		x: canvas.width + 25,
-		y: Math.random() * (canvas.height-40) + 20,
-		radius: 20,
-		speed: Math.random() * 0.5 + 0.25,
-		score: 100,
-		img: new Image(),
-	};
-	alien.img.src = "img/GoldFish.png";
-	aliens.push(alien);
+	move() {
+		this.x -= this.speed;
+		if (this.x < -5) {
+			this.x = canvas.width + 25;
+			this.y = Math.random() * (canvas.height-40) + 20;
+		}
+	}
+
+	draw() {
+		ctx.drawImage(this.img, 0, 0, 64, 30, this.x-this.radius, this.y-this.radius, this.radius*2, this.radius*2);
+	}
+
+	revive() {
+		if (this.hp == 0 && Math.random() < 0.1) {
+			this.hp = 1;
+			this.x = canvas.width + 25;
+			this.y = Math.random() * (canvas.height-40) + 20;
+		}
+	}
+}
+
+// 的のオブジェクトを格納する配列
+var enemys = [];
+
+// 敵を生成する関数
+for (var i = 0; i < 10; i++) {
+	alien = new Enemy();
+	enemys.push(alien);
 }
 
 // キーボード入力の処理
@@ -84,13 +110,22 @@ function movePlayer() {
 	}
 }
 
-// エイリアンの移動
-function moveAlien() {
-	for (var i = 0; i < aliens.length; i++) {
-		aliens[i].x -= aliens[i].speed;
-		if (aliens[i].x < -5) {
-			aliens[i].x = canvas.width + 25;
-			aliens[i].y = Math.random() * (canvas.height-40) + 20;
+// 敵のの復活
+function reviveAlien() {
+	for (var i = 0; i < enemys.length; i++) {
+		if (enemys[i].hp <= 0) {
+			if (Math.random() < 0.01) {
+				enemys[i].revive();
+			}
+		}
+	}
+}
+
+// 敵の生物の移動
+function moveEnemys() {
+	for (var i = 0; i < enemys.length; i++) {
+		if (enemys[i].hp > 0) {
+			enemys[i].move();
 		}
 	}
 }
@@ -104,18 +139,44 @@ function moveBackGround() {
 
 // 当たり判定
 function collisionDetection() {
-	hitTest();
-	for (var i = 0; i < aliens.length; i++) {
-		var dx = player.x - aliens[i].x;
-		var dy = player.y - aliens[i].y;
-		var distance = Math.sqrt(dx * dx + dy * dy);
-		if (distance < player.radius + aliens[i].radius) {
-			mode = 2;
-			count = 100;
-			player.x = canvas.width / 4;
-			player.y = canvas.height / 2;
-			aliens = [];
-			bullets = [];
+	// 弾と敵の生物の当たり判定
+	for (var j = 0; j < enemys.length; j++) {
+		if (enemys[j].hp > 0) {
+			for (var i = 0; i < bullets.length; i++) {
+				var dx = bullets[i].x - enemys[j].x;
+				var dy = bullets[i].y - enemys[j].y;
+				var distance = Math.sqrt(dx * dx + dy * dy);
+				if (distance < bullets[i].radius + enemys[j].radius) {
+					// スコアを加算する
+					score += enemys[j].score;
+					// 当たった弾と敵の生物を削除する
+					bullets.splice(i, 1);
+					enemys[j].hp -= 1;
+					break;
+				}
+			}
+		}
+	}
+	// 敵の生物とプレイヤーの当たり判定
+	for (var i = 0; i < enemys.length; i++) {
+		if (enemys[i].hp > 0) {
+			var dx = player.x - enemys[i].x;
+			var dy = player.y - enemys[i].y;
+			var distance = Math.sqrt(dx * dx + dy * dy);
+			if (distance < player.radius + enemys[i].radius) {
+				enemys[i].hp -= 1;
+				player.hp -= 1;
+				if (player.hp <= 0) {
+					mode = 2;
+					score = 0;
+					player.x = canvas.width / 4;
+					player.y = canvas.height / 2;
+					for (var i = 0; i < enemys.length; i++) {
+						enemys[i].hp = 0;
+					}
+					bullets = [];
+				}
+			}
 		}
 	}
 }
@@ -144,25 +205,6 @@ function moveBullet() {
 	}
 }
 
-// 弾がエイリアンに当たったかどうかを判定する
-function hitTest() {
-	for (var i = 0; i < bullets.length; i++) {
-		for (var j = 0; j < aliens.length; j++) {
-			var dx = bullets[i].x - aliens[j].x;
-			var dy = bullets[i].y - aliens[j].y;
-			var distance = Math.sqrt(dx * dx + dy * dy);
-			if (distance < bullets[i].radius + aliens[j].radius) {
-				// スコアを加算する
-				score += aliens[j].score;
-				// 当たった弾とエイリアンを削除する
-				bullets.splice(i, 1);
-				aliens.splice(j, 1);
-				break;
-			}
-		}
-	}
-}
-
 // ゲーム画面描画
 function drawGame() {
 	// 背景を描画
@@ -180,9 +222,11 @@ function drawGame() {
 	// プレイヤーを描画
 	ctx.drawImage(player.img, 40, 0, 40, 40, player.x-player.radius, player.y-player.radius, player.radius*2, player.radius*2);
 
-	// エイリアンを描画
-	for (var i = 0; i < aliens.length; i++) {
-		ctx.drawImage(aliens[i].img, 0, 0, 64, 30, aliens[i].x-aliens[i].radius, aliens[i].y-aliens[i].radius, aliens[i].radius*2, aliens[i].radius*2);
+	// 敵の生物を描画
+	for (var i = 0; i < enemys.length; i++) {
+		if (enemys[i].hp > 0) {
+			enemys[i].draw();
+		}
 	}
 
 	// 当たり判定
@@ -196,6 +240,14 @@ function drawScore() {
 	ctx.fillStyle = "white";
 	ctx.font = "30px " + DEFAULT_FONT;
 	ctx.fillText("Score: " + score, 5, 5);
+}
+
+function drawHP() {
+	ctx.textAlign = "start";
+	ctx.textBaseline = "top";
+	ctx.fillStyle = "white";
+	ctx.font = "30px " + DEFAULT_FONT;
+	ctx.fillText("HP: " + player.hp, canvas.width / 2 + 5, 5);
 }
 
 // ゲーム開始画面描画
@@ -226,27 +278,20 @@ var score = 0;
 var gameLoop = setInterval(function() {
 	switch(mode) {
 		case 0:
-			score = 0;
-			moveBackGround()
 			drawStart();
 			break
 		case 1:
 			moveBackGround();
 			movePlayer();
-			moveAlien();
+			moveEnemys();
 			moveBullet();
 			drawGame();
 			drawScore();
-			if (count >= 100) {
-				createAlien();
-			}
+			drawHP();
+			reviveAlien();
 			break
 		case 2:
 			drawGameOver();
 			drawScore();
-	}
-	count += 1;
-	if (count > 100) {
-		count = 0;
 	}
 }, 5);
