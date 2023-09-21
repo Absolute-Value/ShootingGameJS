@@ -31,7 +31,7 @@ var aliens = [];
 function createAlien() {
 	var alien = {
 		x: canvas.width + 25,
-		y: Math.random() * (canvas.height-4),
+		y: Math.random() * (canvas.height-40) + 20,
 		radius: 20,
 		speed: 0.5 + score / 100,
 		img: new Image(),
@@ -68,16 +68,16 @@ document.addEventListener("keyup", function(event) {
 
 // プレイヤーの移動
 function movePlayer() {
-	if (keys["ArrowUp"] && player.y > player.radius/2) { // 上矢印キー
+	if (keys["ArrowUp"] && player.y > player.radius) { // 上矢印キー
 		player.y -= 1;
 	}
-	if (keys["ArrowDown"] && player.y < canvas.height - player.radius/2) { // 下矢印キー
+	if (keys["ArrowDown"] && player.y < canvas.height - player.radius) { // 下矢印キー
 		player.y += 1;
 	}
-	if (keys["ArrowLeft"] && player.x > player.radius/2) { // 左矢印キー
+	if (keys["ArrowLeft"] && player.x > player.radius) { // 左矢印キー
 		player.x -= 1;
 	}
-	if (keys["ArrowRight"] && player.x < canvas.width - player.radius/2) { // 右矢印キー
+	if (keys["ArrowRight"] && player.x < canvas.width - player.radius) { // 右矢印キー
 		player.x += 1;
 	}
 }
@@ -87,8 +87,8 @@ function moveAlien() {
 	for (var i = 0; i < aliens.length; i++) {
 		aliens[i].x -= aliens[i].speed;
 		if (aliens[i].x < -5) {
-			aliens[i].x = canvas.width + 8;
-			aliens[i].y = Math.random() * canvas.height;
+			aliens[i].x = canvas.width + 25;
+			aliens[i].y = Math.random() * (canvas.height-40) + 20;
 		}
 	}
 }
