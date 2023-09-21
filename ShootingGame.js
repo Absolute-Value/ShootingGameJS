@@ -20,6 +20,7 @@ var player = {
 	x: canvas.width / 4,
 	y: canvas.height / 2,
 	radius: 20,
+	speed: 1,
 	img: new Image()
 };
 player.img.src = "img/Player.png";
@@ -33,7 +34,8 @@ function createAlien() {
 		x: canvas.width + 25,
 		y: Math.random() * (canvas.height-40) + 20,
 		radius: 20,
-		speed: 0.5 + score / 100,
+		speed: Math.random() * 0.5 + 0.25,
+		score: 100,
 		img: new Image(),
 	};
 	alien.img.src = "img/GoldFish.png";
@@ -69,16 +71,16 @@ document.addEventListener("keyup", function(event) {
 // プレイヤーの移動
 function movePlayer() {
 	if (keys["ArrowUp"] && player.y > player.radius) { // 上矢印キー
-		player.y -= 1;
+		player.y -= player.speed;
 	}
 	if (keys["ArrowDown"] && player.y < canvas.height - player.radius) { // 下矢印キー
-		player.y += 1;
+		player.y += player.speed;
 	}
 	if (keys["ArrowLeft"] && player.x > player.radius) { // 左矢印キー
-		player.x -= 1;
+		player.x -= player.speed;
 	}
 	if (keys["ArrowRight"] && player.x < canvas.width - player.radius) { // 右矢印キー
-		player.x += 1;
+		player.x += player.speed;
 	}
 }
 
@@ -150,11 +152,11 @@ function hitTest() {
 			var dy = bullets[i].y - aliens[j].y;
 			var distance = Math.sqrt(dx * dx + dy * dy);
 			if (distance < bullets[i].radius + aliens[j].radius) {
+				// スコアを加算する
+				score += aliens[j].score;
 				// 当たった弾とエイリアンを削除する
 				bullets.splice(i, 1);
 				aliens.splice(j, 1);
-				// スコアを加算する
-				score++;
 				break;
 			}
 		}
