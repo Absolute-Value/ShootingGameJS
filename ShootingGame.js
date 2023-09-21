@@ -6,7 +6,7 @@ var title_image = new Image();
 title_image.src = "img/Title.png";
 
 class Entity {
-	constructor(max_hp=3, x=0, y=0, radius=20, speed=1, img="img/Player.png") {
+	constructor(max_hp=3, x=0, y=0, radius=20, speed=1, img="img/Player.png", crop={width: 40, height: 40}) {
 		this.max_hp = max_hp;
 		this.hp = 0;
 		this.x = x;
@@ -15,10 +15,12 @@ class Entity {
 		this.speed = speed;
 		this.img = new Image();
 		this.img.src = img;
+		this.crop = crop;
 	}
 
-	draw(x, y, width, height) {
-		ctx.drawImage(this.img, x, y, width, height, this.x-this.radius, this.y-this.radius, this.radius*2, this.radius*2);
+	draw() {
+		var crop_x = this.crop.width * (this.speed >= 0 ? 1 : 0)
+		ctx.drawImage(this.img, crop_x, 0, this.crop.width, this.crop.height, this.x-this.radius, this.y-this.radius, this.radius*2, this.radius*2);
 	}
 }
 
@@ -35,6 +37,10 @@ class BackGround extends Entity {
 			this.x = 0;
 		}
 	}
+
+	draw() {
+		ctx.drawImage(this.img, this.x, this.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
+	}
 }
 background = new BackGround();
 
@@ -46,15 +52,17 @@ class Player extends Entity {
 
 	move() {
 		if (keys["ArrowUp"] && this.y > this.radius) { // 上矢印キー
-			this.y -= this.speed;
+			this.y -= Math.abs(this.speed);
 		}
 		if (keys["ArrowDown"] && this.y < canvas.height - this.radius) { // 下矢印キー
-			this.y += this.speed;
+			this.y += Math.abs(this.speed);
 		}
 		if (keys["ArrowLeft"] && this.x > this.radius) { // 左矢印キー
-			this.x -= this.speed;
+			this.speed = Math.abs(this.speed) * -1;
+			this.x += this.speed;
 		}
 		if (keys["ArrowRight"] && this.x < canvas.width - this.radius) { // 右矢印キー
+			this.speed = Math.abs(this.speed);
 			this.x += this.speed;
 		}
 	}
@@ -68,14 +76,14 @@ class Player extends Entity {
 player = new Player();
 
 class Enemy extends Entity {
-	constructor(max_hp=1, radius=20, speed=0.5, img="img/GoldFish.png", appear_score=0, point=100) {
-		super(max_hp, 0, 0, radius, speed, img);
+	constructor(max_hp=1, radius=20, speed=-0.5, img="img/GoldFish.png", appear_score=0, point=100, crop={width:64, height:30}) {
+		super(max_hp, 0, 0, radius, speed, img, crop);
 		this.appear_score = appear_score;
 		this.point = point;
 	}
 
 	move() {
-		this.x -= this.speed;
+		this.x += this.speed;
 		if (this.x < -5) {
 			this.x = canvas.width + 25;
 			this.y = Math.random() * (canvas.height-40) + 20;
@@ -98,7 +106,7 @@ for (var i = 0; i < GOLDFISH_NUM; i++) { // GoldFish
 	enemys.push(new Enemy());
 }
 for (var i = 0; i < TURTLE_NUM; i++) { // Turtle
-	enemys.push(new Enemy(2, 25, 0.3, "img/Turtle.png", 1000, 300));
+	enemys.push(new Enemy(2, 25, -0.3, "img/Turtle.png", 1000, 300));
 }
 
 // キーボード入力の処理
@@ -127,7 +135,7 @@ document.addEventListener("keyup", function(event) {
 	delete keys[event.code];
 });
 
-// 敵のの復活
+// 敵の復活
 function reviveAlien() {
 	for (var i = 0; i < enemys.length; i++) {
 		if (enemys[i].hp <= 0 && score >= enemys[i].appear_score) {
@@ -200,7 +208,7 @@ function createBullet() {
 		x: player.x + player.radius / 2,
 		y: player.y,
 		radius: 10,
-		speed: 2
+		speed: player.speed >= 0 ? 2 : -2
 	};
 	bullets.push(bullet);
 }
@@ -218,9 +226,7 @@ function moveBullet() {
 
 // ゲーム画面描画
 function drawGame() {
-	// 背景を描画
-	ctx.drawImage(background.img, background.x, background.y, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-
+	background.draw();
 	// 弾を描画する
     for (var i = 0; i < bullets.length; i++) {
 		ctx.beginPath();
@@ -229,11 +235,11 @@ function drawGame() {
 		ctx.lineWidth = 1 ;
 		ctx.stroke() ;
     }
-	player.draw(40, 0, 40, 40);
+	player.draw();
 	// 敵の生物を描画
 	for (var i = 0; i < enemys.length; i++) {
 		if (enemys[i].hp > 0) {
-			enemys[i].draw(0, 0, 64, 30);
+			enemys[i].draw();
 		}
 	}
 }
