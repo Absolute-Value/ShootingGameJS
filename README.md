@@ -1,4 +1,5 @@
 # シューティングゲーム
+![](img/Title.png)
 ![JavaScript][JavaScript.js]
 
 JavaScriptで動くシューティングゲームを開発する用リポジトリです．  
