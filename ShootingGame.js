@@ -149,6 +149,7 @@ class Enemy extends Entity {
 var enemys = []; // 敵のオブジェクトを格納する配列
 for (var i = 0; i < GOLDFISH_NUM; i++) enemys.push(new Enemy()); // GoldFish
 for (var i = 0; i < TURTLE_NUM; i++) enemys.push(new Enemy(2, 25, -0.3, "img/Turtle.png", 1000, 300)); // Turtle
+for (var i = 0; i < DOLPHIN_NUM; i++) enemys.push(new Enemy(2, 25, -1.2, "img/Dolphin.png", 5000, 500)); // Octopus
 
 // キーボード入力の処理
 var keys = {};
