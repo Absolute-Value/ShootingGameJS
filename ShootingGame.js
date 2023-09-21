@@ -61,13 +61,13 @@ class Enemy {
 	}
 }
 
-// 的のオブジェクトを格納する配列
+// 敵のオブジェクトを格納する配列
 var enemys = [];
 
-for (var i = 0; i < 10; i++) { // GoldFish
+for (var i = 0; i < GOLDFISH_NUM; i++) { // GoldFish
 	enemys.push(new Enemy());
 }
-for (var i = 0; i < 5; i++) { // Turtle
+for (var i = 0; i < TURTLE_NUM; i++) { // Turtle
 	enemys.push(new Enemy(2, 25, 0.3, "img/Turtle.png", 1000, 300));
 }
 
@@ -233,36 +233,20 @@ function drawGame() {
 			enemys[i].draw();
 		}
 	}
-
-	// 当たり判定
-	collisionDetection();
 }
 
-// スコアの描画
-function drawScore() {
+// スコアやHPの描画
+function drawLetter(str, x=5, y=5) {
 	ctx.textAlign = "start";
 	ctx.textBaseline = "top";
 	ctx.fillStyle = "white";
 	ctx.font = "30px " + DEFAULT_FONT;
-	ctx.fillText("Score: " + score, 5, 5);
-}
-
-function drawHP() {
-	ctx.textAlign = "start";
-	ctx.textBaseline = "top";
-	ctx.fillStyle = "white";
-	ctx.font = "30px " + DEFAULT_FONT;
-	ctx.fillText("HP: " + player.hp, canvas.width / 2 + 5, 5);
-}
-
-// ゲーム開始画面描画
-function drawStart() {
-	ctx.drawImage(title_image, 0, 0, canvas.width, canvas.height);
+	ctx.fillText(str, x, y);
 }
 
 function drawGameOver() {
 	// 背景を描画
-ctx.fillStyle = "#000";
+	ctx.fillStyle = "#000";
 	ctx.fillRect(0, 0, canvas.width, canvas.height);
 	// タイトルを描画する
 	ctx.font = "80px " + DEFAULT_FONT;
@@ -283,7 +267,8 @@ var score = 0;
 var gameLoop = setInterval(function() {
 	switch(mode) {
 		case 0:
-			drawStart();
+			ctx.drawImage(title_image, 0, 0, canvas.width, canvas.height);
+			drawLetter(VERSION);
 			break
 		case 1:
 			moveBackGround();
@@ -291,12 +276,13 @@ var gameLoop = setInterval(function() {
 			moveEnemys();
 			moveBullet();
 			drawGame();
-			drawScore();
-			drawHP();
+			collisionDetection(); // 当たり判定
+			drawLetter("Score: " + score);
+			drawLetter("HP: " + player.hp, canvas.width / 2 + 5, 5);
 			reviveAlien();
 			break
 		case 2:
 			drawGameOver();
-			drawScore();
+			drawLetter("Score: " + score);
 	}
 }, 5);
